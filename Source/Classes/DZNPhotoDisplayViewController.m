@@ -53,6 +53,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     self = [super initWithCollectionViewLayout:layout];
     if (self) {
         self.title = NSLocalizedString(@"Internet Photos", nil);
+        self.tagSearchingEnabled = NO;
     }
     return self;
 }
@@ -517,6 +518,9 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
  */
 - (BOOL)canSearchTag:(NSString *)term
 {
+    if (!self.tagSearchingEnabled) {
+        return NO;
+    }
     if ([self.searchDisplayController.searchBar isFirstResponder] && term.length > 2) {
         
         [self resetSearchTimer];
@@ -543,7 +547,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     NSString *term = [timer.userInfo objectForKey:@"term"];
     [self resetSearchTimer];
     
-    id <DZNPhotoServiceClientProtocol> client =  [[DZNPhotoServiceFactory defaultFactory] clientForService:DZNPhotoPickerControllerServiceFlickr];
+    id <DZNPhotoServiceClientProtocol> client =  [[DZNPhotoServiceFactory defaultFactory] clientForService:_selectedService];
     [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
 
     [client searchTagsWithKeyword:term

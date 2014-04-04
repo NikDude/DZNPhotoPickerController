@@ -28,6 +28,8 @@
 @property (nonatomic) NSInteger rowCount;
 /** YES if the controller started a request and loading content. */
 @property (nonatomic, getter = isLoading) BOOL loading;
+/** Enable/disable tag search */
+@property (nonatomic, assign) BOOL tagSearchingEnabled;
 
 /**
  * Stops any loading HTTP request.
