@@ -129,6 +129,13 @@ static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
     }
 }
 
+- (void)setTitle:(NSString *)title {
+    if ([[self.viewControllers objectAtIndex:0] isKindOfClass:[DZNPhotoDisplayViewController class]]) {
+        DZNPhotoDisplayViewController *controller = (DZNPhotoDisplayViewController *)[self.viewControllers objectAtIndex:0];
+        controller.title = title;
+    }
+}
+
 + (void)registerService:(DZNPhotoPickerControllerService)service consumerKey:(NSString *)key consumerSecret:(NSString *)secret subscription:(DZNPhotoPickerControllerSubscription)subscription
 {
     [DZNPhotoServiceFactory setConsumerKey:key consumerSecret:secret service:service subscription:subscription];
