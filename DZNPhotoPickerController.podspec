@@ -15,6 +15,6 @@ Pod::Spec.new do |s|
   s.ios.framework	= 'MobileCoreServices'
   s.requires_arc 	= true
 
-  s.dependency 'AFNetworking', '~> 1.3.3'
+  s.dependency 'AFNetworking', '~> 2.2.1'
   s.dependency 'SDWebImage', '~> 3.5.4'
 end

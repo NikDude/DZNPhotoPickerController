@@ -28,7 +28,7 @@
 {
     self = [super initWithBaseURL:baseURLForService(service)];
     if (self) {
-        self.parameterEncoding = AFJSONParameterEncoding;
+//        self.parameterEncoding = AFJSONParameterEncoding;
         _service = service;
         _subscription = subscription;
     }
@@ -170,8 +170,11 @@
 
 - (void)getObject:(NSString *)objectName path:(NSString *)path params:(NSDictionary *)params completion:(DZNHTTPRequestCompletion)completion
 {
-//    NSLog(@"%s\nobjectName : %@ \npath : %@\nparams: %@\n\n",__FUNCTION__, objectName, path, params);
+    NSLog(@"%s\nobjectName : %@ \npath : %@\nparams: %@\n\n",__FUNCTION__, objectName, path, params);
     
+    if (!path) {
+        path = @"";
+    }
     if (_service == DZNPhotoPickerControllerServiceFlickr) {
         path = @"";
     }
@@ -180,16 +183,13 @@
         path = [path stringByReplacingOccurrencesOfString:@"%@" withString:keyword];
     }
     
-    [self getPath:path parameters:params success:^(AFHTTPRequestOperation *operation, id response) {
-        
-        NSData *data = [self processData:response];
+    [self GET:path parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSData *data = [self processData:operation.responseData];
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves | NSJSONReadingAllowFragments error:nil];
         
         if (completion) completion([self objectListForObject:objectName withJSON:json], nil);
         _loadingPath = nil;
-        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        
         if (completion) completion(nil, error);
         _loadingPath = nil;
     }];
@@ -200,10 +200,27 @@
     if (_loadingPath) {
         
         if (_service == DZNPhotoPickerControllerServiceFlickr) _loadingPath = @"";
+        
         [self cancelAllHTTPOperationsWithMethod:@"GET" path:_loadingPath];
         
         _loadingPath = nil;
     }
 }
+
+#pragma mark - Internal
+
+- (void)cancelAllHTTPOperationsWithMethod:(NSString *)method path:(NSString *)path {
+    NSArray *operations = self.operationQueue.operations;
+    for (AFHTTPRequestOperation *operation in operations) {
+        if ([operation.request.HTTPMethod isEqual:method]) {
+            NSString *url = [[operation.request.URL baseURL] absoluteString];
+            NSRange range = [url rangeOfString:path];
+            if (range.location != NSNotFound) {
+                [operation cancel];
+            }
+        }
+    }
+}
+
 
 @end
