@@ -185,7 +185,8 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
         _searchBar.text = _searchTerm;
         _searchBar.delegate = self;
         
-        _searchBar.scopeButtonTitles = [self segmentedControlTitles];
+        if (self.segmentedControlTitles.count > 1)
+            _searchBar.scopeButtonTitles = [self segmentedControlTitles];
         _searchBar.selectedScopeButtonIndex = 0;
         
         [self.view addSubview:_searchBar];
@@ -853,16 +854,26 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     [_photoTags removeAllObjects];
 }
 
+- (void)searchBarShouldShift:(BOOL)shift animated:(BOOL)animated {
+    _searchBar.showsScopeBar = shift;
+
+    if (animated) {
+        [UIView animateWithDuration:0.25
+                         animations:^{
+                             [self.searchBar setFrame:[self searchBarFrame]];
+                             [self.searchDisplayController setActive:shift];
+                         }
+                         completion:NULL];
+    } else {
+        [self.searchBar setFrame:[self searchBarFrame]];
+        [self.searchDisplayController setActive:shift];
+    }
+}
+
 - (void)searchBarShouldShift:(BOOL)shift
 {
-    _searchBar.showsScopeBar = shift;
+    return [self searchBarShouldShift:shift animated:YES];
     
-    [UIView animateWithDuration:0.25
-                     animations:^{
-                         [self.searchBar setFrame:[self searchBarFrame]];
-                         [self.searchDisplayController setActive:shift];
-                     }
-                     completion:NULL];
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
@@ -893,7 +904,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 
 - (void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller
 {
-    [self searchBarShouldShift:YES];
+    [self searchBarShouldShift:YES animated:NO];
 }
 
 - (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller
