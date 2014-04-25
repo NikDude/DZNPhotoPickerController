@@ -9,7 +9,8 @@
 //
 
 #import "DZNPhotoDisplayViewCell.h"
-#import <SDWebImage/UIImageView+WebCache.h>
+
+#import "UIImageView+WebCache.h"
 
 #define DZNPhotoDisplayViewCellMargin 30.0
 
@@ -22,7 +23,7 @@
 {
     self = [super initWithFrame:frame];
     if (self) {
-        
+
         self.backgroundView = self.imageView;
         self.backgroundView.backgroundColor = [UIColor colorWithWhite:0.9 alpha:1.0];
 

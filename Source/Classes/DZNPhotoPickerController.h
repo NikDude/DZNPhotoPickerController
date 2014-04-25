@@ -9,7 +9,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "DZNPhotoEditViewController.h"
+#import "DZNPhotoEditorViewController.h"
 
 @protocol DZNPhotoPickerControllerDelegate;
 
@@ -17,7 +17,7 @@
  * A photo search/picker for iOS 7, similar to UIImagePickerControl, providing photos from popular photography like 500px, Flickr and many others.
  * This framework tries to mimic as close as possible the native UIImagePickerController API for iOS7, in terms of features, appearance and behaviour.
  *
- * @discussion Due to Terms of Use of some photo services, the images cannot be cached when showing thumbnails results and full screen images.
+ * @discussion Due to Terms of Use of some photo services, the images can only be cached in memory, but not the device's hard drive.
  */
 @interface DZNPhotoPickerController : UINavigationController
 
@@ -27,16 +27,18 @@ typedef void (^DZNPhotoPickerControllerCancellationBlock)(DZNPhotoPickerControll
 /** The photo picker's delegate object. */
 @property (nonatomic, assign) id <UINavigationControllerDelegate, DZNPhotoPickerControllerDelegate> delegate;
 /** The photo services to be supported by the controller. Default values are 500px & Flickr. */
-@property (nonatomic) DZNPhotoPickerControllerService supportedServices;
-/** A Boolean value indicating whether the user is allowed to edit a selected image. Default value is NO. */
+@property (nonatomic) DZNPhotoPickerControllerServices supportedServices;
+/** YES if the user is allowed to edit a selected image. Default value is NO. */
 @property (nonatomic) BOOL allowsEditing;
 /** An optional string term for auto-starting the photo search, as soon as the picker is presented. */
 @property (nonatomic, copy) NSString *initialSearchTerm;
-/** The editing mode (ie: Square, Circular or Custom). Default is Square. */
-@property (nonatomic) DZNPhotoEditViewControllerCropMode editingMode;
+/** The cropping mode (ie: Square, Circular or Custom). Default is Square. */
+@property (nonatomic, assign) DZNPhotoEditorViewControllerCropMode cropMode;
+/** The cropping size (i.e. 320,320). When setting this property manually, the cropMode is overidden to DZNPhotoEditorViewControllerCropModeCustom. */
+@property (nonatomic, assign) CGSize cropSize;
 /** The supported licenses of photos to search. Default value is "All CC Reserved Attributions". Pending implementation. */
-@property (nonatomic) DZNPhotoPickerControllerCCLicense supportedLicenses;
-/** A Boolean value indicating whether the picker should download the photo after selecting it when allowsEditing is NO. Default value is YES. */
+@property (nonatomic) DZNPhotoPickerControllerCCLicenses supportedLicenses;
+/** YES if the picker should download the full size photo after selecting its thumbnail, when allowsEditing is NO. Default value is YES. */
 @property (nonatomic) BOOL enablePhotoDownload;
 /** A block to be executed whenever the user pickes a new photo. Use this block to replace delegate method photoPickerController:didFinishPickingPhotoWithInfo: */
 @property (nonatomic, strong) DZNPhotoPickerControllerFinalizationBlock finalizationBlock;
@@ -61,7 +63,7 @@ typedef void (^DZNPhotoPickerControllerCancellationBlock)(DZNPhotoPickerControll
  * @param services The specified supported services.
  * @return An array whose elements identify the available media types for the supported services.
  */
-+ (NSArray *)availableMediaTypesForSupportedServices:(DZNPhotoPickerControllerService)services;
++ (NSArray *)availableMediaTypesForSupportedServices:(DZNPhotoPickerControllerServices)services;
 
 /**
  * Registers a specified photo service.
@@ -72,21 +74,23 @@ typedef void (^DZNPhotoPickerControllerCancellationBlock)(DZNPhotoPickerControll
  * @param secret The API consumer secret token.
  * @param subscription The photo service subscription type (i.e. Free & Paid). This param only affects Google Images API for now.
  */
-+ (void)registerService:(DZNPhotoPickerControllerService)service consumerKey:(NSString *)key consumerSecret:(NSString *)secret subscription:(DZNPhotoPickerControllerSubscription)subscription;
++ (void)registerService:(DZNPhotoPickerControllerServices)service consumerKey:(NSString *)key consumerSecret:(NSString *)secret subscription:(DZNPhotoPickerControllerSubscription)subscription;
 
 @end
 
 
+/**
+ * The DZNPhotoPickerControllerDelegate protocol defines methods that your delegate object can implement to interact with the image picker interface. The methods of this protocol notify your delegate when the user either picks a photo, or cancels the picker operation.
+ * You can also use the finalizationBlock and cancellationBlock instead of the delegate methods.
+ */
 @protocol DZNPhotoPickerControllerDelegate <NSObject>
 @required
 
 /**
  * Tells the delegate that the user picked a new photo.
  *
- * @see UIImagePickerControllerDelegate
- *
  * @param picker The controller object managing the photo search picker interface.
- * @param userInfo A dictionary containing the original image and the edited image. The dictionary also contains any relevant editing information. The keys for this dictionary are listed in “Editing Information Keys”.
+ * @param userInfo A dictionary containing the original image and the edited image. The dictionary also contains any relevant editing information (crop size, crop mode). For exiting keys @see DZNPhotoPickerControllerConstants.h.
  */
 - (void)photoPickerController:(DZNPhotoPickerController *)picker didFinishPickingPhotoWithInfo:(NSDictionary *)userInfo;
 
@@ -94,8 +98,6 @@ typedef void (^DZNPhotoPickerControllerCancellationBlock)(DZNPhotoPickerControll
  * Tells the delegate that the user cancelled the pick operation.
  * Your delegate’s implementation of this method should dismiss the picker view by calling the dismissModalViewControllerAnimated: method of the parent view controller.
  * Implementation of this method is optional, but expected.
- *
- * @see UIImagePickerControllerDelegate
  *
  * @param picker The controller object managing the image picker interfac
  */

@@ -9,15 +9,15 @@
 //
 
 UIKIT_EXTERN NSString *const DZNPhotoPickerControllerCropMode;              // An NSString (i.e. square, circular)
-UIKIT_EXTERN NSString *const DZNPhotoPickerControllerPhotoMetadata;         // an NSDictionary containing metadata from a captured photo
+UIKIT_EXTERN NSString *const DZNPhotoPickerControllerCropZoomScale;         // An NSString (from 1.0 to maximum zoom scale, 2.0f)
+UIKIT_EXTERN NSString *const DZNPhotoPickerControllerPhotoMetadata;         // An NSDictionary containing metadata from a captured photo
 
 UIKIT_EXTERN NSString *const DZNPhotoPickerDidFinishPickingNotification;    // The notification key used when photo picked.
-
 
 /**
  * Types of supported photo services
  */
-typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerService) {
+typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerServices) {
     DZNPhotoPickerControllerService500px = (1 << 0),            // 500px                                    http://500px.com/developers/
     DZNPhotoPickerControllerServiceFlickr = (1 << 1),           // Flickr                                   http://www.flickr.com/services/api/
     DZNPhotoPickerControllerServiceInstagram = (1 << 2),        // Instagram                                http://instagram.com/developer/
@@ -32,7 +32,7 @@ typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerService) {
  * 500px: http://500px.com/creativecommons/
  * Flickr: http://flickr.com/creativecommons/
  */
-typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerCCLicense) {
+typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerCCLicenses) {
     DZNPhotoPickerControllerCCLicenseBY_ZERO = -1,              // No Rights Reserved                       http://creativecommons.org/about/cc0
     DZNPhotoPickerControllerCCLicenseBY_ALL = 0,                // All CC Reserved Attributions
     DZNPhotoPickerControllerCCLicenseBY = (1 << 0),             // All Rights Reserved Attribution          http://creativecommons.org/licenses/by/4.0
@@ -44,12 +44,13 @@ typedef NS_OPTIONS(NSUInteger, DZNPhotoPickerControllerCCLicense) {
 };
 
 /**
- * Types of supported cropping modes.
+ * Types of supported crop modes.
  */
-typedef NS_ENUM(NSInteger, DZNPhotoEditViewControllerCropMode) {
-    DZNPhotoEditViewControllerCropModeNone = -1,
-    DZNPhotoEditViewControllerCropModeSquare = 0,
-    DZNPhotoEditViewControllerCropModeCircular
+typedef NS_ENUM(NSInteger, DZNPhotoEditorViewControllerCropMode) {
+    DZNPhotoEditorViewControllerCropModeNone = -1,
+    DZNPhotoEditorViewControllerCropModeSquare = 0,
+    DZNPhotoEditorViewControllerCropModeCircular,
+    DZNPhotoEditorViewControllerCropModeCustom
 };
 
 /**
@@ -67,7 +68,7 @@ typedef NS_ENUM(NSInteger, DZNPhotoPickerControllerSubscription) {
  * @param service The specified service type.
  * @returns The photo service name.
  */
-UIKIT_EXTERN NSString *NSStringFromService(DZNPhotoPickerControllerService service);
+UIKIT_EXTERN NSString *NSStringFromService(DZNPhotoPickerControllerServices services);
 
 /**
  * Returns a list of photo service name strings.
@@ -75,7 +76,7 @@ UIKIT_EXTERN NSString *NSStringFromService(DZNPhotoPickerControllerService servi
  * @param services The bitmap of service types.
  * @returns The list of photo service names.
  */
-UIKIT_EXTERN NSArray *NSArrayFromServices(DZNPhotoPickerControllerService services);
+UIKIT_EXTERN NSArray *NSArrayFromServices(DZNPhotoPickerControllerServices services);
 
 /**
  * Returns a photo service type from name.
@@ -83,7 +84,7 @@ UIKIT_EXTERN NSArray *NSArrayFromServices(DZNPhotoPickerControllerService servic
  * @param name The specified service name.
  * @returns The photo service type.
  */
-UIKIT_EXTERN DZNPhotoPickerControllerService DZNPhotoServiceFromName(NSString *name);
+UIKIT_EXTERN DZNPhotoPickerControllerServices DZNPhotoServiceFromName(NSString *name);
 
 /**
  * Returns the first photo service type from a bitmask of services.
@@ -91,5 +92,5 @@ UIKIT_EXTERN DZNPhotoPickerControllerService DZNPhotoServiceFromName(NSString *n
  * @param services The bitmask of services.
  * @returns The photo service type.
  */
-UIKIT_EXTERN DZNPhotoPickerControllerService DZNFirstPhotoServiceFromPhotoServices(DZNPhotoPickerControllerService services);
+UIKIT_EXTERN DZNPhotoPickerControllerServices DZNFirstPhotoServiceFromPhotoServices(DZNPhotoPickerControllerServices services);
 

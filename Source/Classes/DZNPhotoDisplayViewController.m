@@ -16,6 +16,8 @@
 #import "DZNPhotoMetadata.h"
 #import "DZNPhotoTag.h"
 
+#import "SDWebImageManager.h"
+
 static NSString *kDZNPhotoCellViewIdentifier = @"kDZNPhotoCellViewIdentifier";
 static NSString *kDZNPhotoFooterViewIdentifier = @"kDZNPhotoFooterViewIdentifier";
 static NSString *kDZNTagCellViewIdentifier = @"kDZNTagCellViewIdentifier";
@@ -32,8 +34,8 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 @property (nonatomic, strong) NSMutableArray *photoMetadatas;
 @property (nonatomic, strong) NSMutableArray *photoTags;
 @property (nonatomic, strong) NSArray *segmentedControlTitles;
-@property (nonatomic) DZNPhotoPickerControllerService selectedService;
-@property (nonatomic) DZNPhotoPickerControllerService previousService;
+@property (nonatomic) DZNPhotoPickerControllerServices selectedService;
+@property (nonatomic) DZNPhotoPickerControllerServices previousService;
 @property (nonatomic) NSInteger resultPerPage;
 @property (nonatomic) NSInteger currentPage;
 
@@ -464,7 +466,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 /*
  * Handles the thumbnail selection.
  *
- * Depending on configuration, the selection might result in the following action:
+ * Depending on configuration, the selection might result in one of the following action:
  * - Return only the photo metadata and dismiss the controller
  * - Push into the edit controller for cropping
  * - Download the full size photo and dismiss the controller
@@ -475,15 +477,16 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     
     if (!self.navigationController.enablePhotoDownload) {
         
-        [DZNPhotoEditViewController didFinishPickingOriginalImage:nil
-                                                      editedImage:nil
-                                                         cropRect:CGRectZero
-                                                         cropMode:DZNPhotoEditViewControllerCropModeNone
-                                                    photoMetadata:metadata];
+        [DZNPhotoEditorViewController didFinishPickingOriginalImage:nil
+                                                        editedImage:nil
+                                                           cropRect:CGRectZero
+                                                          zoomScale:1.0
+                                                           cropMode:DZNPhotoEditorViewControllerCropModeNone
+                                                      photoMetadata:metadata];
     }
     else if (self.navigationController.allowsEditing) {
         
-        DZNPhotoEditViewController *controller = [[DZNPhotoEditViewController alloc] initWithPhotoMetadata:metadata cropMode:self.navigationController.editingMode];
+        DZNPhotoEditorViewController *controller = [[DZNPhotoEditorViewController alloc] initWithMetadata:metadata cropMode:self.navigationController.cropMode cropSize:self.navigationController.cropSize];
         [self.navigationController pushViewController:controller animated:YES];
     }
     else {
@@ -495,11 +498,12 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
                                                              progress:NULL
                                                             completed:^(UIImage *image, NSData *data, NSError *error, BOOL finished){
                                                                 if (image) {
-                                                                    [DZNPhotoEditViewController didFinishPickingOriginalImage:image
-                                                                                                                  editedImage:nil
-                                                                                                                     cropRect:CGRectZero
-                                                                                                                     cropMode:DZNPhotoEditViewControllerCropModeNone
-                                                                                                                photoMetadata:metadata];
+                                                                    [DZNPhotoEditorViewController didFinishPickingOriginalImage:image
+                                                                                                                    editedImage:nil
+                                                                                                                       cropRect:CGRectZero
+                                                                                                                      zoomScale:1.0
+                                                                                                                       cropMode:DZNPhotoEditorViewControllerCropModeNone
+                                                                                                                  photoMetadata:metadata];
                                                                     
                                                                 }
                                                                 else {

@@ -10,44 +10,44 @@
 
 #import "UIImagePickerController+Edit.h"
 
-static DZNPhotoEditViewControllerCropMode _editingMode;
+static DZNPhotoEditorViewControllerCropMode _cropMode;
 
 @implementation UIImagePickerController (Edit)
 
-- (void)setEditingMode:(DZNPhotoEditViewControllerCropMode)mode
+- (void)setCropMode:(DZNPhotoEditorViewControllerCropMode)mode
 {
-    _editingMode = mode;
-    
+    self.allowsEditing = NO;
+    _cropMode = mode;
+
     switch (mode) {
-        case DZNPhotoEditViewControllerCropModeSquare:
-        case DZNPhotoEditViewControllerCropModeCircular:
-            self.allowsEditing = NO;
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didPickImage:) name:DZNPhotoPickerDidFinishPickingNotification object:nil];
+        case DZNPhotoEditorViewControllerCropModeNone:
+            [[NSNotificationCenter defaultCenter] removeObserver:self name:DZNPhotoPickerDidFinishPickingNotification object:nil];
             break;
             
-        case DZNPhotoEditViewControllerCropModeNone:
-            self.allowsEditing = NO;
-            [[NSNotificationCenter defaultCenter] removeObserver:self name:DZNPhotoPickerDidFinishPickingNotification object:nil];
+        default:
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didPickImage:) name:DZNPhotoPickerDidFinishPickingNotification object:nil];
             break;
     }
 }
 
-- (DZNPhotoEditViewControllerCropMode)editingMode
+- (DZNPhotoEditorViewControllerCropMode)cropMode
 {
-    return _editingMode;
+    return _cropMode;
 }
 
 - (void)didPickImage:(NSNotification *)notification
 {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(imagePickerController:didFinishPickingMediaWithInfo:)]){
+    if (!self.allowsEditing && self.delegate &&
+        [self.delegate respondsToSelector:@selector(imagePickerController:didFinishPickingMediaWithInfo:)]) {
         
         if ([[notification.userInfo allKeys] containsObject:UIImagePickerControllerEditedImage]) {
-            self.editingMode = DZNPhotoEditViewControllerCropModeNone;
+            self.cropMode = DZNPhotoEditorViewControllerCropModeNone;
         }
         
         [self.delegate imagePickerController:self didFinishPickingMediaWithInfo:notification.userInfo];
-        [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:DZNPhotoPickerDidFinishPickingNotification object:nil];
 }
 
 @end
