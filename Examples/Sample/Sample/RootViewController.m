@@ -7,10 +7,9 @@
 //
 
 #import "RootViewController.h"
-#import "DZNPhotoPickerController.h"
 
-#import "UIImagePickerController+Edit.h"
-#import "UIImagePickerController+Block.h"
+#import "DZNPhotoPickerController.h"
+#import "UIImagePickerControllerExtended.h"
 
 #import "Private.h"
 
@@ -49,12 +48,7 @@
 {
     [super viewDidLoad];
     
-    UIGraphicsBeginImageContextWithOptions(_button.frame.size, NO, 0);
-    UIBezierPath *clipPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, _button.frame.size.width, _button.frame.size.height)];
-    [[UIColor colorWithWhite:0 alpha:0.25] setFill];
-    [clipPath fill];
-    [_button setBackgroundImage:UIGraphicsGetImageFromCurrentImageContext() forState:UIControlStateHighlighted];
-    UIGraphicsEndImageContext();
+    [self startupConfig];
 }
 
 
@@ -103,21 +97,19 @@
 {
     DZNPhotoPickerController *picker = nil;
     
-    if (image) {
+    if (image && _photoPayload) {
         picker = [[DZNPhotoPickerController alloc] initWithEditableImage:image];
-        picker.editingMode = [[_photoPayload objectForKey:DZNPhotoPickerControllerCropMode] integerValue];
+        picker.cropMode = [[_photoPayload objectForKey:DZNPhotoPickerControllerCropMode] integerValue];
     }
     else {
         picker = [DZNPhotoPickerController new];
         picker.supportedServices = DZNPhotoPickerControllerService500px | DZNPhotoPickerControllerServiceFlickr | DZNPhotoPickerControllerServiceGoogleImages;
         picker.allowsEditing = YES;
-        picker.editingMode = DZNPhotoEditViewControllerCropModeSquare;
+        picker.cropMode = DZNPhotoEditorViewControllerCropModeSquare;
     }
     
-    picker.delegate = self;
-    
     picker.finalizationBlock = ^(DZNPhotoPickerController *picker, NSDictionary *info) {
-        [self updateImage:info];
+        [self updateImageWithPayload:info];
         [self dismissController:picker];
     };
     
@@ -133,8 +125,7 @@
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
     picker.sourceType = sourceType;
     picker.allowsEditing = YES;
-    picker.delegate = self;
-    picker.editingMode = DZNPhotoEditViewControllerCropModeCircular;
+    picker.cropMode = DZNPhotoEditorViewControllerCropModeCircular;
     
     picker.finalizationBlock = ^(UIImagePickerController *picker, NSDictionary *info) {
         [self handleImagePicker:picker withMediaInfo:info];
@@ -149,41 +140,69 @@
 
 - (void)handleImagePicker:(UIImagePickerController *)picker withMediaInfo:(NSDictionary *)info
 {
-    if (picker.editingMode == DZNPhotoEditViewControllerCropModeCircular ||
-        picker.editingMode == DZNPhotoEditViewControllerCropModeSquare) {
+    if (picker.cropMode != DZNPhotoEditorViewControllerCropModeNone) {
         
         UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
-        [DZNPhotoEditViewController editImage:image cropMode:picker.editingMode inNavigationController:picker];
+
+        DZNPhotoEditorViewController *editor = [[DZNPhotoEditorViewController alloc] initWithImage:image cropMode:DZNPhotoEditorViewControllerCropModeCircular];
+        [picker pushViewController:editor animated:YES];
     }
     else {
-        [self updateImage:info];
+        [self updateImageWithPayload:info];
         [self dismissController:picker];
     }
 }
 
-- (void)updateImage:(NSDictionary *)info
+- (void)updateImageWithPayload:(NSDictionary *)payload
 {
-    _photoPayload = info;
+    _photoPayload = payload;
     
-    NSLog(@"OriginalImage : %@",[info objectForKey:UIImagePickerControllerOriginalImage]);
-    NSLog(@"EditedImage : %@",[info objectForKey:UIImagePickerControllerEditedImage]);
-    NSLog(@"MediaType : %@",[info objectForKey:UIImagePickerControllerMediaType]);
-    NSLog(@"CropRect : %@", NSStringFromCGRect([[info objectForKey:UIImagePickerControllerCropRect] CGRectValue]));
-    NSLog(@"CropMode : %@", [info objectForKey:DZNPhotoPickerControllerCropMode]);
-    NSLog(@"PhotoAttributes : %@",[info objectForKey:DZNPhotoPickerControllerPhotoMetadata]);
+    NSLog(@"OriginalImage : %@",[payload objectForKey:UIImagePickerControllerOriginalImage]);
+    NSLog(@"EditedImage : %@",[payload objectForKey:UIImagePickerControllerEditedImage]);
+    NSLog(@"MediaType : %@",[payload objectForKey:UIImagePickerControllerMediaType]);
+    NSLog(@"CropRect : %@", NSStringFromCGRect([[payload objectForKey:UIImagePickerControllerCropRect] CGRectValue]));
+    NSLog(@"ZoomScale : %f", [[payload objectForKey:DZNPhotoPickerControllerCropZoomScale] floatValue]);
+
+    NSLog(@"CropMode : %@", [payload objectForKey:DZNPhotoPickerControllerCropMode]);
+    NSLog(@"PhotoAttributes : %@",[payload objectForKey:DZNPhotoPickerControllerPhotoMetadata]);
     
-    UIImage *image = [info objectForKey:UIImagePickerControllerEditedImage];
-    if (!image) image = [info objectForKey:UIImagePickerControllerOriginalImage];
+    UIImage *image = [payload objectForKey:UIImagePickerControllerEditedImage];
+    if (!image) image = [payload objectForKey:UIImagePickerControllerOriginalImage];
     
-    _imageView.image = image;
-    [_button setTitle:nil forState:UIControlStateNormal];
-    
+    [self setButtonImage:image];
     [self saveImage:image];
 }
 
 - (void)saveImage:(UIImage *)image
 {
     UIImageWriteToSavedPhotosAlbum(image, self, nil, nil);
+}
+
+- (void)startupConfig
+{
+    [_button setTitle:@"Tap Here to Start" forState:UIControlStateNormal];
+    [_button setBackgroundImage:nil forState:UIControlStateHighlighted];
+
+    _imageView.image = nil;
+    _photoPayload = nil;
+}
+
+- (void)setButtonImage:(UIImage *)image
+{
+    _imageView.image = image;
+    [_button setTitle:nil forState:UIControlStateNormal];
+    
+    
+    UIGraphicsBeginImageContextWithOptions(_button.frame.size, NO, 0);
+    
+    CGSize imageSize = CGSizeMake(self.view.frame.size.width, (image.size.height*self.view.frame.size.width)/image.size.width);
+    UIBezierPath *clipPath = [UIBezierPath bezierPathWithRect:CGRectMake(0, (_button.frame.size.height-imageSize.height)/2, imageSize.width, imageSize.height)];
+    [[UIColor colorWithWhite:0 alpha:0.75] setFill];
+    [clipPath fill];
+    
+    [_button setBackgroundImage:UIGraphicsGetImageFromCurrentImageContext() forState:UIControlStateHighlighted];
+    
+    UIGraphicsEndImageContext();
 }
 
 - (void)presentController:(UIViewController *)controller
@@ -229,37 +248,8 @@
         [self presentPhotoEditor];
     }
     else if ([buttonTitle isEqualToString:NSLocalizedString(@"Delete Photo",nil)]) {
-        [_button setTitle:@"Tap Here" forState:UIControlStateNormal];
-        _imageView.image = nil;
-        _photoPayload = nil;
+        [self startupConfig];
     }
-}
-
-
-#pragma mark - UIImagePickerControllerDelegate methods
-
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
-{
-    [self handleImagePicker:picker withMediaInfo:info];
-}
-
-- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
-{
-    [self dismissController:picker];
-}
-
-
-#pragma mark - DZNPhotoPickerControllerDelegate methods
-
-- (void)photoPickerController:(DZNPhotoPickerController *)picker didFinishPickingPhotoWithInfo:(NSDictionary *)info
-{
-    [self updateImage:info];
-    [self dismissController:picker];
-}
-
-- (void)photoPickerControllerDidCancel:(DZNPhotoPickerController *)picker
-{
-    [self dismissController:picker];
 }
 
 

@@ -20,8 +20,8 @@
 #define kInstagramConsumerKey           @"16759bba4b7e4831b80bf3412e7dcb16"
 #define kInstagramConsumerSecret        @"701c5a99144a401c8285b0c9df999509"
 
-#define kGoogleImagesConsumerKey        @"AIzaSyBiRs6vQmTVseUnMqUtJwpaJX-m5o9Djr0"
-#define kGoogleImagesSearchEngineID     @"018335320449571565407:tg2a0fkobws"        //cx
+#define kGoogleImagesConsumerKey        @"AIzaSyAdaT7sboY-Wcl2Dv-UMCGDFOGT6hFc_HE"
+#define kGoogleImagesSearchEngineID     @"003311182675670946717:exhh_mqjodc"        //cx
 
 #define kYahooImagesConsumerKey         @"dj0yJmk9N01LeUVpY1YwcFBHJmQ9WVdrOVpVVm1ObTFITkdjbWNHbzlNVE0zT0RNeU1EazJNZy0tJnM9Y29uc3VtZXJzZWNyZXQmeD1iNQ--"
 #define kYahooImagesConsumerSecret      @"9a31a307570aa29cf8f069b473d771caf5ebe262"

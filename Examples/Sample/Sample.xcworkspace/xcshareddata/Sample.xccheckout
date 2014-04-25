@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>3BE8C29D-8D49-45BD-8DFF-2DE5699FEF22</string>
+	<string>8D56D456-7A39-4EAD-A84E-1E90F758C442</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Sample</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>8AED8FE1-FE0D-486D-A7A9-77749EDC190B</key>
-		<string>https://github.com/NikDude/DZNPhotoPickerController.git</string>
+		<key>CA1A55BA-D576-41C4-9401-C5ECA80D3D70</key>
+		<string>ssh://github.com/NikDude/DZNPhotoPickerController.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>Examples/Sample/Sample.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>8AED8FE1-FE0D-486D-A7A9-77749EDC190B</key>
+		<key>CA1A55BA-D576-41C4-9401-C5ECA80D3D70</key>
 		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/NikDude/DZNPhotoPickerController.git</string>
+	<string>ssh://github.com/NikDude/DZNPhotoPickerController.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>8AED8FE1-FE0D-486D-A7A9-77749EDC190B</string>
+	<string>CA1A55BA-D576-41C4-9401-C5ECA80D3D70</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>8AED8FE1-FE0D-486D-A7A9-77749EDC190B</string>
+			<string>CA1A55BA-D576-41C4-9401-C5ECA80D3D70</string>
 			<key>IDESourceControlWCCName</key>
 			<string>DZNPhotoPickerController</string>
 		</dict>
