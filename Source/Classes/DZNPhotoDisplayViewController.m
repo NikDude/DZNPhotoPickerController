@@ -78,9 +78,11 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     
     self.view.backgroundColor = [UIColor whiteColor];
     
-    self.edgesForExtendedLayout = UIRectEdgeAll;
-    self.extendedLayoutIncludesOpaqueBars = YES;
-    self.automaticallyAdjustsScrollViewInsets = YES;
+    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+        self.edgesForExtendedLayout = UIRectEdgeAll;
+        self.extendedLayoutIncludesOpaqueBars = YES;
+        self.automaticallyAdjustsScrollViewInsets = YES;
+    }
     
     self.collectionView.backgroundView = [UIView new];
     self.collectionView.backgroundView.backgroundColor = [UIColor whiteColor];
@@ -97,17 +99,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     [super viewDidLoad];
     
     _searchController = [[UISearchDisplayController alloc] initWithSearchBar:self.searchBar contentsController:self];
-    _searchController.searchResultsTableView.backgroundColor = [UIColor whiteColor];
-    _searchController.searchResultsTableView.tableHeaderView = [UIView new];
-    _searchController.searchResultsTableView.tableFooterView = [UIView new];
-    _searchController.searchResultsTableView.backgroundView = [UIView new];
-    _searchController.searchResultsTableView.backgroundView.backgroundColor = [UIColor whiteColor];
-    _searchController.searchResultsTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
-    _searchController.searchResultsDataSource = self;
-    _searchController.searchResultsDelegate = self;
-    _searchController.delegate = self;
-    
-    [_searchController.searchResultsTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kDZNTagCellViewIdentifier];
+    [self customizeSearchResultsTableView];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -179,15 +171,19 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
         _searchBar = [[UISearchBar alloc] initWithFrame:[self searchBarFrame]];
         _searchBar.placeholder = NSLocalizedString(@"Search", nil);
         _searchBar.barStyle = UIBarStyleDefault;
-        _searchBar.searchBarStyle = UISearchBarStyleProminent;
+        if ([_searchBar respondsToSelector:@selector(setSearchBarStyle:)]) {
+            _searchBar.searchBarStyle = UISearchBarStyleProminent;
+            _searchBar.barTintColor = [UIColor colorWithRed:202.0/255.0 green:202.0/255.0 blue:207.0/255.0 alpha:1.0];
+        }
+
         _searchBar.backgroundColor = [UIColor whiteColor];
-        _searchBar.barTintColor = [UIColor colorWithRed:202.0/255.0 green:202.0/255.0 blue:207.0/255.0 alpha:1.0];
         _searchBar.tintColor = self.view.window.tintColor;
         _searchBar.keyboardType = UIKeyboardAppearanceDark;
         _searchBar.text = _searchTerm;
         _searchBar.delegate = self;
         
-        _searchBar.scopeButtonTitles = [self segmentedControlTitles];
+        if (self.segmentedControlTitles.count > 1)
+            _searchBar.scopeButtonTitles = [self segmentedControlTitles];
         _searchBar.selectedScopeButtonIndex = 0;
         
         [self.view addSubview:_searchBar];
@@ -202,11 +198,12 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 {
     if (!_loadButton)
     {
-        _loadButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        _loadButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [_loadButton setTitle:NSLocalizedString(@"Load More", nil) forState:UIControlStateNormal];
-        [_loadButton setTitleColor:[UIColor clearColor] forState:UIControlStateNormal];
+        [_loadButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_loadButton addTarget:self action:@selector(downloadData) forControlEvents:UIControlEventTouchUpInside];
         [_loadButton.titleLabel setFont:[UIFont systemFontOfSize:17.0]];
+        [_loadButton.titleLabel setTextColor:[UIColor blueColor]];
         [_loadButton setBackgroundColor:self.collectionView.backgroundView.backgroundColor];
         
         [_loadButton addSubview:self.activityIndicator];
@@ -285,16 +282,15 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 {
     BOOL shouldShift = _searchBar.showsScopeBar;
     
-    CGFloat statusHeight = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) ? [UIApplication sharedApplication].statusBarFrame.size.height : 0.0;
+    CGFloat statusHeight = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && isIOS7orLater()) ? [UIApplication sharedApplication].statusBarFrame.size.height : 0.0;
     
     CGRect frame = CGRectMake(0, 0, self.view.frame.size.width,  kDZNPhotoDisplayMinimumBarHeight);
     frame.size.height = shouldShift ?  kDZNPhotoDisplayMinimumBarHeight*2 :  kDZNPhotoDisplayMinimumBarHeight;
     frame.origin.y = shouldShift ? statusHeight : 0.0;
     
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && !shouldShift) {
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && isIOS7orLater() && !shouldShift) {
         frame.origin.y += statusHeight+ kDZNPhotoDisplayMinimumBarHeight;
     }
-    
     return frame;
 }
 
@@ -667,7 +663,11 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
             
             if (_photoMetadatas.count > 0 && !self.loading) {
                 _loadButton.enabled = YES;
-                [_loadButton setTitleColor:self.view.window.tintColor forState:UIControlStateNormal];
+                if ([self.view respondsToSelector:@selector(setTintColor:)]) {
+                    [_loadButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
+                } else {
+                    [_loadButton setTitleColor:[UIColor colorWithRed:0.0 green:122.0/255.0 blue:1.0 alpha:1.0] forState:UIControlStateNormal];
+                }
 
                 self.activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleGray;
                 [self.activityIndicator stopAnimating];
@@ -857,16 +857,32 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     [_photoTags removeAllObjects];
 }
 
+- (void)searchBarShouldShift:(BOOL)shift animated:(BOOL)animated {
+    _searchBar.showsScopeBar = shift;
+
+    if (animated) {
+        [UIView animateWithDuration:0.25
+                         animations:^{
+                             [self.searchBar setFrame:[self searchBarFrame]];
+                             [self.searchDisplayController setActive:shift];
+                             if(!isIOS7orLater()) {
+                                 self.searchController.searchResultsTableView.hidden = NO;
+                             }
+                         }
+                         completion:NULL];
+    } else {
+        [self.searchBar setFrame:[self searchBarFrame]];
+        [self.searchDisplayController setActive:shift];
+        if(!isIOS7orLater()) {
+            self.searchController.searchResultsTableView.hidden = NO;
+        }
+    }
+}
+
 - (void)searchBarShouldShift:(BOOL)shift
 {
-    _searchBar.showsScopeBar = shift;
+    return [self searchBarShouldShift:shift animated:YES];
     
-    [UIView animateWithDuration:0.25
-                     animations:^{
-                         [self.searchBar setFrame:[self searchBarFrame]];
-                         [self.searchDisplayController setActive:shift];
-                     }
-                     completion:NULL];
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
@@ -876,6 +892,9 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     [self shouldSearchPhotos:text];
     [self searchBarShouldShift:NO];
     [self setSearchBarText:text];
+    if (!isIOS7orLater()) {
+        self.searchController.searchResultsTableView.hidden = YES;
+    }
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
@@ -897,7 +916,7 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 
 - (void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller
 {
-    [self searchBarShouldShift:YES];
+    [self searchBarShouldShift:YES animated:NO];
 }
 
 - (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller
@@ -921,6 +940,8 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 - (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView
 {
     NSLog(@"%s",__FUNCTION__);
+    if (!isIOS7orLater())
+        [self customizeSearchResultsTableView];
 }
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller willUnloadSearchResultsTableView:(UITableView *)tableView
@@ -958,6 +979,27 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
     UITableView *tableView = [self.searchDisplayController searchResultsTableView];
     [tableView setContentInset:UIEdgeInsetsZero];
     [tableView setScrollIndicatorInsets:UIEdgeInsetsZero];
+}
+
+#pragma mark - Search results table view customization
+
+/*
+ * Customize search results table view.
+ */
+
+- (void)customizeSearchResultsTableView {
+    _searchController.searchResultsTableView.backgroundColor = [UIColor whiteColor];
+    _searchController.searchResultsTableView.tableHeaderView = [UIView new];
+    _searchController.searchResultsTableView.tableFooterView = [UIView new];
+    _searchController.searchResultsTableView.backgroundView = [UIView new];
+    _searchController.searchResultsTableView.backgroundView.backgroundColor = [UIColor whiteColor];
+    if ([_searchController.searchResultsTableView respondsToSelector:@selector(setKeyboardDismissMode:)])
+        _searchController.searchResultsTableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeNone;
+    _searchController.searchResultsDataSource = self;
+    _searchController.searchResultsDelegate = self;
+    _searchController.delegate = self;
+    
+    [_searchController.searchResultsTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kDZNTagCellViewIdentifier];
 }
 
 
@@ -999,5 +1041,8 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 {
     return NO;
 }
+
+
+
 
 @end

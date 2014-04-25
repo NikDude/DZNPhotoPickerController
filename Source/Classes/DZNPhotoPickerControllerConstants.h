@@ -94,3 +94,10 @@ UIKIT_EXTERN DZNPhotoPickerControllerServices DZNPhotoServiceFromName(NSString *
  */
 UIKIT_EXTERN DZNPhotoPickerControllerServices DZNFirstPhotoServiceFromPhotoServices(DZNPhotoPickerControllerServices services);
 
+/**
+ * Returns a photo service type from name.
+ *
+ * @returns YES if iOS is >= 7
+ */
+
+extern BOOL isIOS7orLater();

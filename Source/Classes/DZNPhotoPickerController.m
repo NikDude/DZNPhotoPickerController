@@ -60,7 +60,8 @@ static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
     [super loadView];
     
     self.view.backgroundColor = [UIColor whiteColor];
-    self.edgesForExtendedLayout = UIRectEdgeTop;
+    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)])
+        self.edgesForExtendedLayout = UIRectEdgeTop;
 }
 
 - (void)viewDidLoad
@@ -124,6 +125,13 @@ static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
     
     _cropSize = size;
     _cropMode = DZNPhotoEditorViewControllerCropModeCustom;
+}
+
+- (void)setTitle:(NSString *)title {
+    if ([[self.viewControllers objectAtIndex:0] isKindOfClass:[DZNPhotoDisplayViewController class]]) {
+        DZNPhotoDisplayViewController *controller = (DZNPhotoDisplayViewController *)[self.viewControllers objectAtIndex:0];
+        controller.title = title;
+    }
 }
 
 + (void)registerService:(DZNPhotoPickerControllerServices)service consumerKey:(NSString *)key consumerSecret:(NSString *)secret subscription:(DZNPhotoPickerControllerSubscription)subscription

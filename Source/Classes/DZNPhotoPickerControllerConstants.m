@@ -72,3 +72,8 @@ NSArray *NSArrayFromServices(DZNPhotoPickerControllerServices services)
     }
     return [NSArray arrayWithArray:titles];
 }
+
+BOOL isIOS7orLater()
+{
+    return (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_6_1);
+}
