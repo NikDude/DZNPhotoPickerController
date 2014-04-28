@@ -474,7 +474,13 @@ DZNPhotoAspect photoAspectFromSize(CGSize aspectRatio)
         [_imageView setImageWithURL:_photoMetadata.sourceURL placeholderImage:nil
                             options:SDWebImageCacheMemoryOnly|SDWebImageProgressiveDownload|SDWebImageRetryFailed
                           completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType){
-                              if (!error) _button.enabled = YES;
+                              if (!error) {
+                                  _button.enabled = YES;
+                              } else {
+                                  [[NSNotificationCenter defaultCenter] postNotificationName:DZNPhotoPickerFailedPickingNotification
+                                                                                      object:nil
+                                                                                    userInfo:@{@"error": error}];
+                              }
                               [activityIndicatorView removeFromSuperview];
                               
                               [_self updateScrollViewContentInset];

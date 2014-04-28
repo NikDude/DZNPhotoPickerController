@@ -16,6 +16,7 @@
 
 static DZNPhotoPickerControllerFinalizationBlock _finalizationBlock;
 static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
+static DZNPhotoPickerControllerFailureBlock _failureBlock;
 
 @interface DZNPhotoPickerController ()
 @property (nonatomic, getter = isEditing) BOOL editing;
@@ -69,6 +70,7 @@ static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
     [super viewDidLoad];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didPickPhoto:) name:DZNPhotoPickerDidFinishPickingNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(failedPickingPhoto:) name:DZNPhotoPickerFailedPickingNotification object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -183,6 +185,18 @@ static DZNPhotoPickerControllerCancellationBlock _cancellationBlock;
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(photoPickerController:didFinishPickingPhotoWithInfo:)]){
         [self.delegate photoPickerController:self didFinishPickingPhotoWithInfo:notification.userInfo];
+    }
+}
+
+- (void)failedPickingPhoto:(NSNotification *)notification
+{
+    if (self.failureBlock) {
+        self.failureBlock(self, notification.userInfo[@"error"]);
+        return;
+    }
+    
+    if (self.delegate && [self.delegate respondsToSelector:@selector(photoPickerController:failedPickingPhotoWithError:)]){
+        [self.delegate photoPickerController:self failedPickingPhotoWithError:notification.userInfo[@"error"]];
     }
 }
 
