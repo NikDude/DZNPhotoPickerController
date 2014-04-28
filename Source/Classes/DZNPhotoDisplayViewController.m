@@ -178,7 +178,6 @@ static CGFloat kDZNPhotoDisplayMinimumBarHeight = 44.0;
 
         _searchBar.backgroundColor = [UIColor whiteColor];
         _searchBar.tintColor = self.view.window.tintColor;
-        _searchBar.keyboardType = UIKeyboardAppearanceDark;
         _searchBar.text = _searchTerm;
         _searchBar.delegate = self;
         
